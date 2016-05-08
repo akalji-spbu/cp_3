@@ -8,22 +8,15 @@
 
 #ifndef SNLE_hpp
 #define SNLE_hpp
+#include <ctime>
 #include "matrix.hpp"
+#include "SLE.h"
 
-Matrix MJacobi(Matrix &X);
+Matrix MJacobi(const Matrix &X);
+Matrix Func(const Matrix &X);
+Matrix Newton(const Matrix &X0);
+Matrix ModifiedNewton(const Matrix &X0);
+Matrix Modified_Newton_Which(const Matrix &X0, unsigned k);
+Matrix Modified_Newton_Hibrid(const Matrix &X0, unsigned k);
 
-//THE SYSTEM
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-double  f1(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f2(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f3(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f4(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f5(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f6(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f7(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f8(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f9(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-double  f10(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10);
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-//END THE SYSTEM
 #endif /* SNLE_hpp */

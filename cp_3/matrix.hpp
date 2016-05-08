@@ -29,11 +29,11 @@ public:
     ~Matrix();
     
     
-    Matrix operator * (const Matrix& B) const;
+    Matrix operator * (const Matrix& A) const;
     Matrix operator - (const Matrix& A) const;
     Matrix operator + (const Matrix& A) const;
+    Matrix& operator = (const Matrix& A);
     
-    Matrix& operator= (const Matrix& A);
     void Add(unsigned i, unsigned j, double value);
     int Get_vsize() const;
     int Get_hsize() const;

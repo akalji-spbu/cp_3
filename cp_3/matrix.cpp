@@ -121,34 +121,45 @@ Matrix Matrix::operator+ (const Matrix& A) const{
     return B;
 }
 
-Matrix Matrix::operator*(const Matrix &B) const {
+Matrix Matrix::operator*(const Matrix &A) const {
     
-    unsigned aVsize = Get_vsize();
-    unsigned aHsize = Get_hsize();
-    unsigned bVsize = B.Get_vsize();
-    unsigned bHsize = B.Get_hsize();
+//    unsigned aVsize = Get_vsize();
+//    unsigned aHsize = Get_hsize();
+//    unsigned bVsize = B.Get_vsize();
+//    unsigned bHsize = B.Get_hsize();
+//    
+//    unsigned rVsize, rHsize;
+//    rVsize=aVsize;
+//    rHsize=bHsize;
+//    
+//    Matrix res(rVsize, rHsize);
+//    
+//    for(unsigned i=0;i<rVsize;i++){
+//        for(unsigned j=0;j<rHsize;j++){
+//            res.Add(i, j, 0.0);
+//        }
+//    }
+//    
+//    if(aHsize==bVsize){
+//        for(unsigned i = 0; i < aVsize; i++)
+//            for(unsigned j = 0; j < bHsize; j++)
+//                for(unsigned k = 0; k < aHsize; k++){
+//                    double tmp = res.Get(i, j)+Get(i, k) * B.Get(k,j);
+//                    res.Add(i, j, tmp);
+//                }
+//    }
+//    return res;
+    if (hsize  != A.vsize) throw;
+    Matrix B(vsize, A.hsize);
     
-    unsigned rVsize, rHsize;
-    rVsize=aVsize;
-    rHsize=bHsize;
+    for (int i = 0; i < vsize; ++i)
+        for (int j = 0; j < A.hsize; ++j)
+            for (int k = 0; k < hsize; ++k)
+                B.M[i][j] += M[i][k] * A.M[k][j];
     
-    Matrix res(rVsize, rHsize);
+    return B;
     
-    for(unsigned i=0;i<rVsize;i++){
-        for(unsigned j=0;j<rHsize;j++){
-            res.Add(i, j, 0.0);
-        }
-    }
-    
-    if(aHsize==bVsize){
-        for(unsigned i = 0; i < aVsize; i++)
-            for(unsigned j = 0; j < bHsize; j++)
-                for(unsigned k = 0; k < aHsize; k++){
-                    double tmp = res.Get(i, j)+Get(i, k) * B.Get(k,j);
-                    res.Add(i, j, tmp);
-                }
-    }
-    return res;
+    return B;
 }
 
 

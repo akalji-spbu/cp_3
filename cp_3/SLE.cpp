@@ -14,12 +14,12 @@
 
 //PLU METHODS
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-void P1P2LU(Matrix &A, Matrix &P, Matrix &Q, Matrix &L, Matrix &U, unsigned &rank, unsigned &swaps){
+void P1P2LU(Matrix &M, Matrix &P, Matrix &Q, Matrix &L, Matrix &U, unsigned &rank, unsigned &swaps){
     swaps = 0;
-    unsigned n = A.Get_vsize();
-    unsigned m = A.Get_hsize();
+    unsigned n = M.Get_vsize();
+    unsigned m = M.Get_hsize();
     rank = n;
-    
+    Matrix A(M);
     for (unsigned i = 0; i < n; ++i)
         for (unsigned j = 0; j < m; ++j)
             if(i==j){
@@ -72,61 +72,6 @@ void P1P2LU(Matrix &A, Matrix &P, Matrix &Q, Matrix &L, Matrix &U, unsigned &ran
                 L.Add(j,i,A.Get(j,i));
             U.Add(i,j,A.Get(i,j));
         }
-}
-
-
-
-unsigned PLU(Matrix &A, Matrix &P,Matrix &L, Matrix &U){
-    unsigned n=A.Get_vsize();
-    unsigned m=A.Get_hsize();
-    unsigned SwapsNum;
-    // make identity matrix P
-    for(unsigned i=0;i<n;i++){
-        for(unsigned j=i;j<m;j++){
-            if(j==i)
-                P.Add(i,j,1);
-            else
-                P.Add(i,j,0);
-        }
-    }
-    for( int i = 0; i < n; i++ ){
-        double pivotValue = 0;
-        int pivot = -1;
-        for(int row = i; row < n; row++){
-            if( fabs(A.Get(row,i)) > pivotValue ){
-                pivotValue = fabs(A.Get(row,i));
-                pivot = row;
-            }
-        }
-        if(pivot!=i){
-            P.SwapRows(pivot, i);
-            A.SwapRows(pivot, i);
-            SwapsNum++;
-        }
-        double tmp1,tmp2;
-        for(unsigned j = i+1; j < m; j++){
-            if(A.Get(i,i)!=0.0)
-                tmp1 = A.Get(j,i)/A.Get(i,i);
-            else continue;
-            A.Add(j,i,tmp1);
-            for(unsigned k = i+1; k < m; k++){
-                tmp2 = A.Get(j,k);
-                tmp2 -= A.Get(j,i) * A.Get(i,k);
-                A.Add(j,k,tmp2);
-            }
-        }
-    }
-    for(unsigned i=0;i<n;i++){
-        for(unsigned j=i;j<m;j++){
-            if(j==i)
-                L.Add(i,j,1);
-            else
-                L.Add(j,i,A.Get(j,i));
-
-            U.Add(i,j,A.Get(i,j));
-        }
-    }
-    return SwapsNum;
 }
 
 double det(Matrix &U, unsigned SwapsNum){
@@ -182,7 +127,6 @@ void SOLE(Matrix &L,Matrix &U,Matrix &b,Matrix &x,int rank){
         }
     }
 }
-
 void inverse(Matrix &L, Matrix &U, int rank, Matrix &inverse){
     int n = L.Get_vsize();
     Matrix *x, b(n,1), tmp(n,1);

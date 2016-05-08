@@ -10,11 +10,12 @@
 //DEFINE CONST
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 const double e = exp(1);
+const double eps = 1e-13;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 // END DEFINE CONST
 
 
-Matrix MJacobi(Matrix &X){
+Matrix MJacobi(const Matrix &X){
     double cg[10][10];
     double x1,x2,x3,x4,x5,x6,x7,x8,x9,x10;
     x1  = X.Get(0,0);
@@ -136,53 +137,179 @@ Matrix MJacobi(Matrix &X){
     return M;
 }
 
-//THE SYSTEM
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-double  f1(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return cos(x1*x2) - pow(e, -3 * x3) + x4*x5*x5 - x6 - sinh(2 * x8)*x9 + 2 * x10 + 2.0004339741653854440;
+Matrix Func(const Matrix &X){
+    Matrix F(10,1);
+    double x1,x2,x3,x4,x5,x6,x7,x8,x9,x10;
+    x1  = X.Get(0,0);
+    x2  = X.Get(1,0);
+    x3  = X.Get(2,0);
+    x4  = X.Get(3,0);
+    x5  = X.Get(4,0);
+    x6  = X.Get(5,0);
+    x7  = X.Get(6,0);
+    x8  = X.Get(7,0);
+    x9  = X.Get(8,0);
+    x10 = X.Get(9,0);
+    
+    F.Add(0, 0, (cos(x1*x2) - pow(e, -3 * x3) + x4*x5*x5 - x6 - sinh(2 * x8)*x9 + 2 * x10 + 2.0004339741653854440) );
+    F.Add(1, 0, (sin(x1*x2) + x3*x9*x7 - pow(e, x6 - x10) + 3 * pow(x5, 2) - x6*(x8 + 1) + 10.886272036407019994) );
+    F.Add(2, 0, (x1 - x2 + x3 - x4 + x5 - x6 + x7 - x8 + x9 - x10 - 3.1361904761904761904) );
+    F.Add(3, 0, (2 * cos(x4 - x9) + x5 / (x3 + x1) - sin(x2*x2) + cos(x7*x10)*cos(x7*x10) - x8 - 0.1707472705022304757) );
+    F.Add(4, 0, (sin(x5) + 2 * x8*(x3 + x1) - pow(e, (-1)*x7*(x6 - x10)) + 2 * cos(x2) - 1 / (x4 - x9) - 0.3685896273101277862) );
+    F.Add(5, 0, (pow(e, x1 - x4 - x9) + x5*x5 / x8 + 0.5*cos(3 * x10*x2) - x6*x3 + 2.0491086016771875115) );
+    F.Add(6, 0, (pow(x2, 3)*x7 - sin(x10 / x5 + x8) + (x1 - x6)*cos(x4) + x3 - 0.7380430076202798014) );
+    F.Add(7, 0, (x5*(x1 - 2 * x6)*(x1 - 2 * x6) - 2 * sin(x3 - x9) + 1.5*x4 - pow(e, x2*x7 + x10) + 3.5668321989693809040) );
+    F.Add(8, 0, (7 / x6 + pow(e, x5 + x4) - 2 * x2*x8*x10*x7 + 3 * x9 - 3 * x1 - 8.4394734508383257499));
+    F.Add(9, 0, (x10*x1 + x9*x2 - x8*x3 + sin(x4 + x5 + x6)*x7 - 0.78238095238095238096));
+    
+    return F;
 }
 
-double  f2(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return sin(x1*x2) + x3*x9*x7 - pow(e, x6 - x10) + 3 * pow(x5, 2) - x6*(x8 + 1) + 10.886272036407019994;
+Matrix Newton(const Matrix &X0){
+    std::cout<<"Newton method is running."<<std::endl;
+    unsigned n = X0.Get_vsize();
+    unsigned operations = 0, iterations = 0;
+    Matrix X(X0), X1(X0);
+    
+    unsigned long start_time = clock();
+    do {
+        unsigned rank, swaps;
+        Matrix A = MJacobi(X), b = A*X - Func(X);
+        Matrix L(n,n), U(n,n), P1(n,n), P2(n,n);
+        P1.insertDiag(1);
+        P2.insertDiag(1);
+        P1P2LU(A,P1,P2,L,U,rank,swaps);
+        operations+=pow(n,3);
+        b = P1*b;
+        SOLE(L, U, b, X1, rank);
+        operations+=pow(n,2);
+        X = P2*X1;
+        iterations++;
+    } while (Func(X).norm()>eps);
+    unsigned long end_time = clock();
+    
+    std::cout<<"Num of iterations: "<< iterations <<std::endl;
+    std::cout<<"Num of operations: "<< operations <<std::endl;
+    std::cout<<"Time: "<< (end_time - start_time)/1000 <<" ms" <<std::endl;
+    
+    return X;
 }
 
-double  f3(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return x1 - x2 + x3 - x4 + x5 - x6 + x7 - x8 + x9 - x10 - 3.1361904761904761904;
-}
-double  f4(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return 2 * cos(x4 - x9) + x5 / (x3 + x1) - sin(x2*x2) + cos(x7*x10)*cos(x7*x10) - x8 - 0.1707472705022304757;
+Matrix ModifiedNewton(const Matrix &X0){
+    unsigned n = X0.Get_vsize();
+    std::cout<<"Modified Newton method is running."<<std::endl<<std::endl;
+    Matrix X(X0);
+    unsigned rank, swaps;
+  
+    unsigned operations = 0, iterations = 0;
+    Matrix X1(n, 1);
+    
+    unsigned long start_time = clock();
+    Matrix A = MJacobi(X);
+    Matrix L(n), U(n), P1(n), P2(n);
+    P1.insertDiag(1);
+    P2.insertDiag(1);
+    
+    P1P2LU(A,P1,P2,L,U,rank,swaps);
+    operations += pow(n,3);
+    do {
+        Matrix b = A*X - Func(X);
+        b = P1*b;
+        SOLE(L, U, b, X1, rank);;
+        X = P2*X1;
+        operations += pow(n,2);
+        
+        iterations++;
+    } while (fabs(Func(X).norm())>eps);
+    unsigned long end_time = clock();
+
+    
+    
+    std::cout<<"Num of iterations: "<< iterations <<std::endl;
+    std::cout<<"Num of operations: "<< operations <<std::endl;
+    std::cout<<"Time: "<< (end_time - start_time)/1000 <<" ms" <<std::endl;
+    return X;
 }
 
-double  f5(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return sin(x5) + 2 * x8*(x3 + x1) - pow(e, (-1)*x7*(x6 - x10)) + 2 * cos(x2) - 1 / (x4 - x9) - 0.3685896273101277862;
+Matrix Modified_Newton_Which(const Matrix &X0, unsigned k){
+    std::cout<<"Modified Newton with selecting method is running."<<std::endl;
+    unsigned n = X0.Get_vsize();
+    unsigned operations = 0, iterations = 0;
+    Matrix X(X0), X1(n,1);
+    unsigned long start_time = clock();
+    unsigned rank = 0, swaps = 0;
+    
+    if (k < 1) k = 1;
+    Matrix A;
+    Matrix L(n), U(n), P1(n), P2(n),E(n);
+    P1.insertDiag(1);
+    P2.insertDiag(1);
+    E.insertDiag(1);
+
+    do {
+        while(k > 0){
+            L = U = P1 = P2 = E;
+            A = MJacobi(X);
+            P1P2LU(A, P1, P2, L, U, rank, swaps);
+            operations += pow(n,3);
+            --k;
+        }
+        Matrix b = A*X - Func(X);
+        
+        b = P1*b;
+        
+        SOLE(L, U, b, X1, rank);
+        X = P2*X1;
+        operations += pow(n,2);
+        
+        ++iterations;
+    } while (fabs(Func(X).norm())>eps);
+    unsigned long end_time = clock();
+    
+    std::cout<<"Num of iterations: "<< iterations <<std::endl;
+    std::cout<<"Num of operations: "<< operations <<std::endl;
+    std::cout<<"Time: "<< (end_time - start_time)/1000 <<" ms"<<std::endl;
+    
+    return X;
 }
 
-double  f6(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return pow(e, x1 - x4 - x9) + x5*x5 / x8 + 0.5*cos(3 * x10*x2) - x6*x3 + 2.0491086016771875115;
+Matrix Modified_Newton_Hibrid(const Matrix &X0, unsigned k){
+    std::cout<<"Modified hibrid Newton method is running."<<std::endl;
+    unsigned n = X0.Get_vsize();
+    unsigned operations = 0, iterations = 0;
+    Matrix X(X0), X1(X0);
+    unsigned long start_time = clock();
+    unsigned rank, swaps;
+    
+    Matrix L(n), U(n), P1(n), P2(n), E(n);
+    
+    if (k < 1) k = 1;
+    Matrix A = MJacobi(X);
+    P1P2LU(A, P1, P2, L, U, rank, swaps);
+    operations += pow(n,3);
+    do {
+        
+        if ((n+1) % k == 0){
+            L = U = P1 = P2 = E;
+            A = MJacobi(X);
+            P1P2LU(A, P1, P2, L, U, rank, swaps);
+            operations += pow(n,3);
+        }
+        Matrix b = A*X - Func(X);
+        b = P1*b;
+        
+        SOLE(L, U, b, X1, rank);
+        X = P2*X1;
+        operations += pow(n,2);
+        iterations++;
+        
+    }while(fabs(Func(X).norm())>eps);
+    unsigned long end_time = clock();
+    
+    std::cout<<"Num of iterations: "<< iterations <<std::endl;
+    std::cout<<"Num of operations: "<< operations <<std::endl;
+    std::cout<<"Time: "<< (end_time - start_time)/1000 <<" ms"<<std::endl;
+    
+    return X;
 }
 
-double  f7(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return pow(x2, 3)*x7 - sin(x10 / x5 + x8) + (x1 - x6)*cos(x4) + x3 - 0.7380430076202798014;
-}
-
-double  f8(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return x5*(x1 - 2 * x6)*(x1 - 2 * x6) - 2 * sin(x3 - x9) + 1.5*x4 - pow(e, x2*x7 + x10) + 3.5668321989693809040;
-}
-
-double  f9(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return 7 / x6 + pow(e, x5 + x4) - 2 * x2*x8*x10*x7 + 3 * x9 - 3 * x1 - 8.4394734508383257499;
-}
-
-double  f10(double  x1, double  x2, double  x3, double  x4, double  x5, double  x6, double  x7, double  x8, double  x9, double  x10){
-    return x10*x1 + x9*x2 - x8*x3 + sin(x4 + x5 + x6)*x7 - 0.78238095238095238096;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-//END THE SYSTEM
-
-
-//Matrix Newton(Matrix &B, double precision,){
-//    unsigned n=
-//    Matrix(n,m);
-//
-//    return _X;
-//}
